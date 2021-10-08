@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "rkca"
+version = "0.1.0"
+description = "Python implementation of Robust Kronecker Component Analysis"
+authors = ["Mehdi Bahri <mehdi.bahri15@imperial.ac.uk>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.7,<=3.9"
+numpy = "^1.21.2"
+slycot = "^0.4.0.0"
+control = "^0.9.0"
+scipy = "^1.7.1"
+tqdm = "^4.62.3"
+click = "^8.0.1"
+scikit-image = "^0.18.3"
+matplotlib = "^3.4.3"
+
+[tool.poetry.group.dev.dependencies]
+jupyterlab = "^3.1.17"
+black = "^21.9-beta.0"
+ipdb = "^0.13.9"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
