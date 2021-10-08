@@ -4,18 +4,21 @@ import numpy as np
 
 
 from utils import soft_shrinkage, rsolve, batched_frobenius_norm
+from experiments import post_process_no_op, pre_process_no_op
 
 
 class RkcaOrderTwoAdmm(object):
     """ADMM solver for RKCA with order 2 regularization - also known as KDRSDL
-       Algorithm 1 of [1, 2].
+    Algorithm 1 of [1, 2].
 
-       [1] Robust Kronecker-Decomposable Component Analysis for Low-Rank Modeling,
-            M. Bahri, Y. Panagakis, and S. Zafeiriou, ICCV, 2017
-       [2] Robust Kronecker Component Analysis, M. Bahri. Y. Panagakis, S. Zafeiriou,
-            IEEE T-PAMI, 2019
+    [1] Robust Kronecker-Decomposable Component Analysis for Low-Rank Modeling,
+         M. Bahri, Y. Panagakis, and S. Zafeiriou, ICCV, 2017
+    [2] Robust Kronecker Component Analysis, M. Bahri. Y. Panagakis, S. Zafeiriou,
+         IEEE T-PAMI, 2019
     """
-    def __init__(self,
+
+    def __init__(
+        self,
         X,
         r=None,
         lambda_=None,
@@ -28,11 +31,13 @@ class RkcaOrderTwoAdmm(object):
         mu=None,
         mu_bar=np.inf,
         convergence_core_R=False,
+        pre_processing=pre_process_no_op,
+        post_processing=post_process_no_op,
     ):
         # Reference the input
-        self.X = X
+        self.X = pre_processing(X)
         # Dimensions of the input
-        self.Nobs, self.n, self.m = X.shape
+        self.Nobs, self.n, self.m = self.X.shape
 
         self.init_if_unset(r, lambda_)
 
@@ -48,6 +53,11 @@ class RkcaOrderTwoAdmm(object):
 
         self.variables_initialized_ = False
         self.extra_variables_initialized_ = False
+
+        # Apply operation on the output such as transpositions and normalizations
+        # keep track of the pre_processing for logging/development
+        self.pre_processing = pre_processing
+        self.post_processing = post_processing
 
         if convergence_core_R:
             self.convergence_criterion = self.convergence_criterion_core_R_
@@ -268,14 +278,12 @@ class RkcaOrderTwoAdmm(object):
     def get_reconst_R(self):
         self.L_R = self.A @ self.R @ self.B.T
 
-        return self.L_R, self.E
-
+        return self.post_processing(self.X, self.L_R, self.E)
 
     def get_reconst_K(self):
         self.L_K = self.A @ self.K @ self.B.T
 
-        return self.L_K, self.E
-
+        return self.post_processing(self.X, self.L_K, self.E)
 
     def get_reconst(self):
         return self.get_reconst_K()
