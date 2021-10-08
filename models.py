@@ -270,10 +270,21 @@ class RkcaOrderTwoAdmm(object):
             et = time.time()
             delta_t_rank = et - st
 
-            print(f"[{self.niter:03d}] mu = {self.mu:.3e} max err. = {EE:.3e} | rk(A, 1e-3) = {estim_rank_A} rk(B, 1e-3) = {estim_rank_B} (est. in {delta_t_rank:.3e}s) | Iter time: {delta_t_iter:.3f}s")
+            print(
+                f"[{self.niter:03d}] mu = {self.mu:.3e} max err. = {EE:.3e} | rk(A, 1e-3) = {estim_rank_A} rk(B, 1e-3) = {estim_rank_B} (est. in {delta_t_rank:.3e}s) | Iter time: {delta_t_iter:.3f}s"
+            )
+
+        # Print status of the loop at either convergence or maxiter reached
+        if self.converged:
+            print(
+                f"RKCA reached convergence at tol. {self.tol:.3g} in {self.niter} steps."
+            )
+        else:
+            print(
+                f"Convergence was not achieved at tol. {self.tol:.3g} - Maximum number of iterations exhausted."
+            )
 
         return self.converged, self.niter, self.err
-
 
     def get_reconst_R(self):
         self.L_R = self.A @ self.R @ self.B.T
