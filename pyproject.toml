@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.7,<=3.9"
+python = ">=3.7,<3.10"
 numpy = "^1.21.2"
 slycot = "^0.4.0.0"
 control = "^0.9.0"
