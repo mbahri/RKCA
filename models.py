@@ -67,7 +67,6 @@ class RkcaOrderTwoAdmm(object):
         self.init_constants()
         self.init_mu_with_norms()
 
-
     def init_if_unset(self, r, lambda_):
         if r is None:
             self.r = np.minimum(self.n, self.m)
@@ -78,7 +77,6 @@ class RkcaOrderTwoAdmm(object):
             self.lambda_ = 1 / np.sqrt(self.Nobs * np.maximum(self.n, self.m))
         else:
             self.lambda_ = lambda_
-
 
     def init_variables(self):
         if not self.variables_initialized_:
@@ -107,16 +105,13 @@ class RkcaOrderTwoAdmm(object):
 
             self.variables_initialized_ = True
 
-
     def init_constants(self):
         # Pre-compute some operations that are used often and do not change
         self.Ir = np.eye(self.r)
         self.norms_fs_X = batched_frobenius_norm(self.X)
 
-
     def init_mu_with_norms(self, rescaling_coefficient=1.25):
         self.mu = rescaling_coefficient * self.Nobs / self.norms_fs_X.sum()
-
 
     def init_extra_variables(self, rescaling_coefficient=1.25):
         if not self.extra_variables_initialized_:
@@ -124,11 +119,12 @@ class RkcaOrderTwoAdmm(object):
             self.K = self.R.copy()
             self.Yk = np.zeros_like(self.R)
 
-            self.mu_k = rescaling_coefficient * self.Nobs / batched_frobenius_norm(self.R).sum()
+            self.mu_k = (
+                rescaling_coefficient * self.Nobs / batched_frobenius_norm(self.R).sum()
+            )
             print("Done")
 
             self.extra_variables_initialized_ = True
-
 
     def convergence_criterion_(self, delta):
         # Reconstruction error defined as the max reconstruction error
@@ -139,21 +135,20 @@ class RkcaOrderTwoAdmm(object):
         e_slice = (e_slices_n / e_slices_d).max()
 
         # Splitting error
-        e_split = (batched_frobenius_norm(self.K - self.R) / batched_frobenius_norm(self.K)).max()
+        e_split = (
+            batched_frobenius_norm(self.K - self.R) / batched_frobenius_norm(self.K)
+        ).max()
 
         return np.maximum(e_slice, e_split)
-
 
     def convergence_criterion_core_K_(self):
         # Use K as the core variable for true sparsity, but must recompute the low-rank component
         delta = self.Xt - self.A @ self.K @ self.B.T
         return self.convergence_criterion_(delta)
 
-
     def convergence_criterion_core_R_(self):
         # Reuse cached computation from the update of the core variables
         return self.convergence_criterion_(self.delta_L_R)
-
 
     def update_A_L2(self):
         Rt = self.R.transpose(0, 2, 1)
@@ -165,15 +160,15 @@ class RkcaOrderTwoAdmm(object):
 
         self.A = rsolve(An, denom)
 
-
     def update_B_L2(self):
         Bn = (self.S.transpose(0, 2, 1) @ self.A @ self.R).sum(axis=0)
-        Bd = self.mu * (self.R.transpose(0, 2, 1) @ (self.A.T @ self.A) @ self.R).sum(axis=0)
+        Bd = self.mu * (self.R.transpose(0, 2, 1) @ (self.A.T @ self.A) @ self.R).sum(
+            axis=0
+        )
 
         denom = self.alpha_b * self.Ir + Bd
 
         self.B = rsolve(Bn, denom)
-
 
     def update_E(self):
         # self.L_R should not have changed since its update in update_RY_regR_L1
@@ -181,10 +176,11 @@ class RkcaOrderTwoAdmm(object):
 
         self.E = soft_shrinkage(E, self.lambda_ / self.mu)
 
-
     def update_RY_regR_L1(self):
         # B should be m x r and A n x r
-        red_S = ( (self.A.T @ self.S @ self.B) + self.mu_k * self.K + self.Yk ) / self.mu_k
+        red_S = (
+            (self.A.T @ self.S @ self.B) + self.mu_k * self.K + self.Yk
+        ) / self.mu_k
 
         U = (-self.mu / self.mu_k) * (self.A.T @ self.A)
         V = self.B.T @ self.B
@@ -210,7 +206,6 @@ class RkcaOrderTwoAdmm(object):
         self.Yk = self.Yk + self.mu_k * (self.K - self.R)
 
         self.mu_k = np.minimum(self.mu_bar, self.rho * self.mu_k)
-
 
     def fit(self):
         self.init_variables()

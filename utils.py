@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def soft_shrinkage(E, lambda_):
     return np.maximum(np.abs(E) - lambda_, 0) * np.sign(E)
 
